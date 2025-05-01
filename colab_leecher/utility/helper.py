@@ -169,27 +169,46 @@ def videoExtFix(file_path: str):
         return ospath.join(file_path + ".mp4")
 
 
+# def thumbMaintainer(file_path):
+#     """
+#     Always use a custom image path (BRAND_PATH) as the thumbnail.
+#     Returns the custom image path and the video duration.
+#     """
+#     try:
+#         # Custom image path
+#         BRAND_PATH = "/content/Leecher/colab_leecher/downlader/y.jpg"
+
+#         # Get the video duration
+#         with VideoFileClip(file_path) as video:
+#             duration = video.duration
+
+#         # Return the custom image path and video duration
+#         return BRAND_PATH, duration
+#     except Exception as e:
+#         print(f"Thmb Gen ERROR: {e}")
+#         # Fallback to a default image if something goes wrong
+#         return Paths.BRAND_PATH, 0
+
 def thumbMaintainer(file_path):
-    """
-    Always use a custom image path (BRAND_PATH) as the thumbnail.
-    Returns the custom image path and the video duration.
-    """
+    if ospath.exists(Paths.VIDEO_FRAME):
+        os.remove(Paths.VIDEO_FRAME)
     try:
-        # Custom image path
-        BRAND_PATH = "/content/Leecher/colab_leecher/downlader/y.jpg"
-
-        # Get the video duration
+        fname, _ = ospath.splitext(ospath.basename(file_path))
+        ytdl_thmb = f"{Paths.WORK_PATH}/ytdl_thumbnails/{fname}.webp"
         with VideoFileClip(file_path) as video:
-            duration = video.duration
-
-        # Return the custom image path and video duration
-        return BRAND_PATH, duration
+            if ospath.exists(Paths.THMB_PATH):
+                return Paths.THMB_PATH, video.duration
+            elif ospath.exists(ytdl_thmb):
+                return convertIMG(ytdl_thmb), video.duration
+            else:
+                video.save_frame(Paths.VIDEO_FRAME, t=math.floor(video.duration / 2))
+                return Paths.VIDEO_FRAME, video.duration
     except Exception as e:
         print(f"Thmb Gen ERROR: {e}")
-        # Fallback to a default image if something goes wrong
-        return Paths.BRAND_PATH, 0
-
-
+        if ospath.exists(Paths.THMB_PATH):
+            return Paths.THMB_PATH, 0
+        return Paths.HERO_IMAGE, 0
+        
 async def setThumbnail(message):
     global SETTING
     try:
